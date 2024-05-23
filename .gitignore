@@ -1,0 +1,26 @@
+# Virtual environment
+.venv/
+
+# Workspace
+.vscode/
+**/__pycache__/
+
+# Environment variables
+.env
+
+# Misc
+cmds.txt
+TODO.md
+**/query.py
+
+# Llama-cpp build
+build/
+llama/
+llama.cpp/
+
+# Log
+**/model_log.csv
+**/log.jsonl*
+
+# Data
+**/data/
