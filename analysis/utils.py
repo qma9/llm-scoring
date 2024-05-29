@@ -1,5 +1,5 @@
 from langchain_community.llms.llamacpp import LlamaCpp
-from numpy import sum as np_sum
+from numpy import array, isnan, nan, sum as np_sum
 
 from typing import List, Dict
 
@@ -19,7 +19,7 @@ def load_model(
     Llama_model = LlamaCpp(
         model_path=model_path,
         temperature=0,
-        max_tokens=10,
+        max_tokens=5,
         top_p=1,
         verbose=True,
         n_ctx=n_ctx,
@@ -31,7 +31,9 @@ def load_model(
         f"Loaded {MODEL} model.",
         extra={
             "temperature": 0,
-            "max_tokens": 10,
+            # LLama-2 uses SentencePiece Byte-Pair tokenization, after testing with LlamaTokenizerFast and "hf-internal-testing/llama-tokenizer",
+            # float output, e.g. "-0.67" or "0.45", are 6 tokens long
+            "max_tokens": 6,
             "top_p": 1,
             "n_ctx": n_ctx,
             "n_gpu_layers": n_gpu_layers,
@@ -104,9 +106,29 @@ def generate_responses(
 
                 response = llm.invoke(prompt)
 
-                inner_scores.append(float(response.strip()))
+                try:
+                    response_float = float(response.strip())
+                except ValueError as e:
+                    response_float = nan
+                    logger.error(
+                        f"Unable to convert model response to float: {e}",
+                        extra={
+                            "document_id": key,
+                            "document_text": value,
+                            "document_part": string,
+                            "model_response": response.strip(),
+                            "error": e,
+                        },
+                    )
 
-            inner_dict[attribute] = np_sum(inner_scores) / len(inner_scores)
+                inner_scores.append(response_float)
+
+            inner_scores_array = array(inner_scores)
+            filtered_inner_scores = inner_scores_array[~isnan(inner_scores_array)]
+
+            inner_dict[attribute] = np_sum(filtered_inner_scores) / len(
+                filtered_inner_scores
+            )
 
         scores[key] = inner_dict
 
@@ -119,27 +141,35 @@ def generate_responses(
 
 def prompt_general(text: str, descriptor: str, concept: str) -> str:
     """
-    Uncovering semantics of concepts  using GPT-4 and other LLMs
+    Uncovering semantics of concepts using GPT-4 and other LLMs
     (Le Mens et al., 2023)
     General Prompt used for [INST] [/INST] part.
     """
 
     prompt = f"""
     <<SYS>>\n
-    
     Your only purpose is to provide a measure of typicality, semantic similarity, of {descriptor}s to the concept of {concept}. 
-    
     Provide your response as a score between -1.00 and 1.00, where -1.00 means ‘not typical at all’, 0.00 means ‘neutral’, and 1.00 means ‘extremely typical’.
+    Strictly only respond with a floating point number with a precision of 2, e.g. "-0.23" or "0.67" and with no other text.
+    
+    Example responses:
+    [INST]
+    Here’s a company review:\nStrong leadership is a highlight, but opportunities for employees to contribute to decision-making processes are limited.\n
+    How typical is this company review of centralization?
+    [/INST]
+    0.85
 
-    Strictly only respond with your score, a floating point number with a precision of 2, e.g. "-0.23" or "0.67" and with no other text.
+    [INST]
+    Here’s a company review:\nLeadership values input from all levels. Decision-making is distributed, allowing lower-level employees to influence company-wide decisions.\n
+    How typical is this company review of centralization?
+    [/INST]
+    -0.95
 
     \n<</SYS>>\n
 
     [INST]
-    
-    Here’s a {descriptor}: {text}
+    Here’s a {descriptor}:\n{text}\n
     How typical is this {descriptor} of {concept}?
-
     [/INST]
     """
 

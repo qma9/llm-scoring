@@ -26,7 +26,9 @@ def main() -> None:
     total_start_time = perf_counter()  # Benchmarking total runtime
 
     # Fetch all reviews from database
-    reviews = get_all_reviews()
+    reviews = (
+        get_all_reviews()
+    )  # TESTING, in get_all_reviews() change fetch back to .all() for production
     logger.info(f"Total reviews: {len(reviews)}", extra={"total_reviews": len(reviews)})
 
     # Create a dictionary with review_id as keys and review_text as values

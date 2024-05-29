@@ -11,7 +11,7 @@ MODEL_SIZE = "13b"
 MODEL = f"llama-2-{MODEL_SIZE}-chat.Q4_K_M.gguf"
 MODEL_PATH = f"{getenv('MODEL_PATH')}{MODEL}"
 N_CTX = 4096  # llama-2 supports up 4096 token length
-N_GPU_LAYERS = 25  # change this value based on your model and your GPU VRAM pool
+N_GPU_LAYERS = 40  # change this value based on your model and your GPU VRAM pool
 N_BATCH = 3192  # should be between 1 and n_ctx, depends on VRAM in your GPU
 
 DESCRIPTOR = "company review"  # earnings call transcript

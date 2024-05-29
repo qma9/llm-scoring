@@ -12,6 +12,8 @@
 cmds.txt
 TODO.md
 **/query.py
+hardware_error_log.md
+testing.py
 
 # Llama-cpp build
 build/
