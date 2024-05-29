@@ -39,7 +39,9 @@ def get_all_reviews() -> List[Review]:
     """
 
     with get_db() as session:
-        reviews = session.query(Review).all()
+        reviews = session.query(
+            Review
+        ).all()  # .filter(Review.employer_id == 7633).limit(100).all() for testing
 
     return reviews
 
