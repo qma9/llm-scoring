@@ -1,10 +1,7 @@
 from typing import Dict, List
 from os import getenv
-from os.path import dirname, abspath, isfile
+from os.path import isfile, join
 from csv import DictWriter
-from sys import path
-
-# path.append(dirname(dirname(abspath(__file__))))
 
 from analysis.config import (
     MODEL,
@@ -25,7 +22,7 @@ def model_log(
     calls = len(corpus) * len(pos_attributes)
 
     # Define the CSV file path
-    csv_file_path = getenv("LOG_PATH", "model_log.csv")
+    csv_file_path = join(getenv("LOG_PATH"), "model_log.csv")
 
     # Define the headers for the CSV file
     headers = ["time", "n_gpu_layers", "n_batch", "n_ctx", "calls", "model"]
