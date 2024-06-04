@@ -14,6 +14,7 @@ TODO.md
 **/query.py
 hardware_error_log.md
 testing.py
+poetry_cmds.txt
 
 # Llama-cpp build
 build/
